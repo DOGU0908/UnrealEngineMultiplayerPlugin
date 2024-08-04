@@ -20,8 +20,8 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 //////////////////////////////////////////////////////////////////////////
 // AMultiplayerPluginCharacter
 
-AMultiplayerPluginCharacter::AMultiplayerPluginCharacter():
-	CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &AMultiplayerPluginCharacter::OnCreateSessionComplete)),
+AMultiplayerPluginCharacter::AMultiplayerPluginCharacter()
+	:CreateSessionCompleteDelegate(FOnCreateSessionCompleteDelegate::CreateUObject(this, &AMultiplayerPluginCharacter::OnCreateSessionComplete)),
 	FindSessionsCompleteDelegate(FOnFindSessionsCompleteDelegate::CreateUObject(this, &AMultiplayerPluginCharacter::OnFindSessionsComplete)),
 	JoinSessionCompleteDelegate(FOnJoinSessionCompleteDelegate::CreateUObject(this, &AMultiplayerPluginCharacter::OnJoinSessionComplete))
 {
@@ -64,11 +64,6 @@ AMultiplayerPluginCharacter::AMultiplayerPluginCharacter():
 	if (OnlineSubsystem)
 	{
 		OnlineSessionInterface = OnlineSubsystem->GetSessionInterface();
-
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Found subsystem %s"), *OnlineSubsystem->GetSubsystemName().ToString()));
-		}
 	}
 }
 
@@ -165,23 +160,11 @@ void AMultiplayerPluginCharacter::OnCreateSessionComplete(FName SessionName, boo
 {
 	if (bWasSuccessful)
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("Created session: %s"), *SessionName.ToString()));
-		}
-
 		UWorld* World = GetWorld();
 
 		if (World)
 		{
 			World->ServerTravel(FString("/Game/ThirdPerson/Maps/Lobby?listen"));
-		}
-	}
-	else
-	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Failed to create session")));
 		}
 	}
 }
@@ -199,11 +182,6 @@ void AMultiplayerPluginCharacter::OnFindSessionsComplete(bool bWasSuccessful)
 		FString User = Result.Session.OwningUserName;
 		FString MatchType;
 		Result.Session.SessionSettings.Get(FName("MatchType"), MatchType);
-
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Cyan, FString::Printf(TEXT("Id: %s, User: %s"), *Id, *User));
-		}
 
 		if (MatchType == FString("FreeForAll"))
 		{
@@ -227,11 +205,6 @@ void AMultiplayerPluginCharacter::OnJoinSessionComplete(FName SessionName, EOnJo
 	
 	if (OnlineSessionInterface->GetResolvedConnectString(NAME_GameSession, Address))
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString::Printf(TEXT("Connect string: %s"), *Address));
-		}
-
 		APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
 
 		if (PlayerController)
