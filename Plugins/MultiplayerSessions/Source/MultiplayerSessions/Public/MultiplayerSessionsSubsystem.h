@@ -3,11 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "OnlineSessionSettings.h"
-#include "Interfaces/OnlineSessionDelegates.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "MultiplayerSessionsSubsystem.generated.h"
+
+/*
+ * Declaring delegates for the MultiplayerMenu class to bind callbacks to
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSessionsSubsystemOnCreateSessionCompleteDelegate, bool, bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerSessionsSubsystemOnFindSessionsCompleteDelegate, const TArray<FOnlineSessionSearchResult>& SessionSearchResult, bool bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerSessionsSubsystemOnJoinSessionCompleteDelegate, EOnJoinSessionCompleteResult::Type Result);
 
 /**
  * 
@@ -29,7 +34,13 @@ public:
 	void FindSessions(int32 MaxSearchResults);
 	void JoinSession(const FOnlineSessionSearchResult& SessionSearchResult);
 	void DestroySession();
-	void StartSession();
+
+	/*
+	 * Delegates for the MultiplayerMenu class to bind callbacks to
+	 */
+	FMultiplayerSessionsSubsystemOnCreateSessionCompleteDelegate MultiplayerSessionsSubsystemOnCreateSessionCompleteDelegate;
+	FMultiplayerSessionsSubsystemOnFindSessionsCompleteDelegate MultiplayerSessionsSubsystemOnFindSessionsCompleteDelegate;
+	FMultiplayerSessionsSubsystemOnJoinSessionCompleteDelegate MultiplayerSessionsSubsystemOnJoinSessionCompleteDelegate;
 	
 protected:
 	/*
@@ -39,11 +50,16 @@ protected:
 	void OnFindSessionsComplete(bool bWasSuccessful);
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
 	void OnDestroySessionComplete(FName SessionName, bool bWasSuccessful);
-	void OnStartSessionComplete(FName SessionName, bool bWasSuccessful);
 
 private:
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
+	TSharedPtr<FOnlineSessionSearch> LastSessionSearchSettings;
 
+	bool bCreateSessionOnDestroy{false};
+	int32 LastNumPublicConnections{4};
+	FString LastMatchType{TEXT("FreeForAll")};
+	
 	/*
 	 * delegates
 	 */
@@ -55,6 +71,4 @@ private:
 	FDelegateHandle JoinSessionCompleteDelegateHandle;
 	FOnDestroySessionCompleteDelegate DestroySessionCompleteDelegate;
 	FDelegateHandle DestroySessionCompleteDelegateHandle;
-	FOnStartSessionCompleteDelegate StartSessionCompleteDelegate;
-	FDelegateHandle StartSessionCompleteDelegateHandle;
 };
